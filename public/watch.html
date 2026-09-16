@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Safety Training</title>
+
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+
+            margin: 0;
+
+            min-height: 100vh;
+
+            background: #111827;
+
+            color: white;
+
+            font-family:
+                Arial,
+                Helvetica,
+                sans-serif;
+
+            display: flex;
+
+            justify-content: center;
+
+            align-items: center;
+
+            padding: 20px;
+        }
+
+
+        .container {
+
+            width: 100%;
+
+            max-width: 900px;
+
+            text-align: center;
+        }
+
+
+        h1 {
+
+            margin-bottom: 10px;
+
+            font-size: 28px;
+        }
+
+
+        .instruction {
+
+            color: #d1d5db;
+
+            margin-bottom: 25px;
+
+            font-size: 16px;
+        }
+
+
+        .video-container {
+
+            position: relative;
+
+            width: 100%;
+
+            padding-bottom: 56.25%;
+
+            height: 0;
+
+            overflow: hidden;
+
+            border-radius: 10px;
+
+            background: black;
+
+            box-shadow:
+                0 10px 30px
+                rgba(0, 0, 0, 0.4);
+        }
+
+
+        .video-container iframe {
+
+            position: absolute;
+
+            top: 0;
+
+            left: 0;
+
+            width: 100%;
+
+            height: 100%;
+
+            border: none;
+        }
+
+
+        #status {
+
+            margin-top: 25px;
+
+            padding: 15px;
+
+            border-radius: 8px;
+
+            display: none;
+
+            font-weight: bold;
+        }
+
+
+        .success {
+
+            display: block !important;
+
+            background: #166534;
+
+            color: white;
+        }
+
+
+        .error {
+
+            display: block !important;
+
+            background: #991b1b;
+
+            color: white;
+        }
+
+
+        .loading {
+
+            display: block !important;
+
+            background: #374151;
+
+            color: white;
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<div class="container">
+
+    <h1>
+        Safety Training
+    </h1>
+
+
+    <p class="instruction">
+        Please watch the complete training video.
+        Do not close this page until the video finishes.
+    </p>
+
+
+    <div class="video-container">
+
+        <div id="player"></div>
+
+    </div>
+
+
+    <div id="status"></div>
+
+</div>
+
+
+<script>
+
+    // ------------------------------------------------
+    // Training ID
+    // ------------------------------------------------
+
+    const urlParams =
+        new URLSearchParams(
+            window.location.search
+        );
+
+
+    const trainingId =
+        urlParams.get("id");
+
+
+    const statusElement =
+        document.getElementById("status");
+
+
+    let completionSubmitted = false;
+
+
+    // ------------------------------------------------
+    // Check training ID
+    // ------------------------------------------------
+
+    if (!trainingId) {
+
+        statusElement.className =
+            "error";
+
+        statusElement.textContent =
+            "Invalid training link.";
+
+    }
+
+
+    // ------------------------------------------------
+    // YouTube API
+    // ------------------------------------------------
+
+    let player;
+
+
+    function onYouTubeIframeAPIReady() {
+
+        if (!trainingId) {
+            return;
+        }
+
+
+        player = new YT.Player(
+            "player",
+            {
+
+                width: "100%",
+
+                height: "100%",
+
+                videoId: "TpRD2Oq6vC8",
+
+                playerVars: {
+
+                    autoplay: 0,
+
+                    controls: 1,
+
+                    rel: 0,
+
+                    modestbranding: 1
+                },
+
+
+                events: {
+
+                    onReady:
+                        onPlayerReady,
+
+                    onStateChange:
+                        onPlayerStateChange
+                }
+
+            }
+        );
+    }
+
+
+    function onPlayerReady(event) {
+
+        console.log(
+            "Training video ready."
+        );
+    }
+
+
+    // ------------------------------------------------
+    // Video state
+    // ------------------------------------------------
+
+    function onPlayerStateChange(event) {
+
+        if (
+            event.data ===
+            YT.PlayerState.ENDED
+        ) {
+
+            completeTraining();
+
+        }
+
+    }
+
+
+    // ------------------------------------------------
+    // Complete training
+    // ------------------------------------------------
+
+    async function completeTraining() {
+
+        if (completionSubmitted) {
+            return;
+        }
+
+
+        completionSubmitted = true;
+
+
+        statusElement.className =
+            "loading";
+
+        statusElement.textContent =
+            "Video completed. Recording your training completion...";
+
+
+        try {
+
+            const response =
+                await fetch(
+                    "/api/video-completed",
+                    {
+                        method: "POST",
+
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body: JSON.stringify({
+                            id: trainingId
+                        })
+                    }
+                );
+
+
+            const data =
+                await response.json();
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    data.message ||
+                    "Unable to record completion."
+                );
+            }
+
+
+            statusElement.className =
+                "success";
+
+            if (data.confirmationSent) {
+
+                statusElement.textContent =
+                    "Training Completed successfully. A confirmation message has been sent to your WhatsApp.";
+
+            } else {
+
+                statusElement.textContent =
+                    "Training Completed successfully.";
+
+            }
+
+
+        } catch (error) {
+
+            console.error(error);
+
+
+            statusElement.className =
+                "error";
+
+            statusElement.textContent =
+                "Video was completed, but completion could not be confirmed. Please contact the administrator.";
+
+        }
+
+    }
+
+</script>
+
+
+<!-- YouTube IFrame API -->
+
+<script
+    src="https://www.youtube.com/iframe_api">
+</script>
+
+
+</body>
+</html>

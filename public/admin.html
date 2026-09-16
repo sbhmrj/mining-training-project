@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Mining Training - Admin Dashboard</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f4f6f8;
+            color: #222;
+        }
+
+        .header {
+            background: #1f2937;
+            color: white;
+            padding: 20px 40px;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 25px;
+        }
+
+        .header p {
+            margin: 6px 0 0;
+            color: #d1d5db;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow:
+                0 2px 10px rgba(0, 0, 0, 0.08);
+        }
+
+        .card h2 {
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns:
+                repeat(2, minmax(0, 1fr));
+
+            gap: 18px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group.full {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            font-weight: bold;
+            margin-bottom: 7px;
+        }
+
+        input,
+        textarea,
+        select {
+            width: 100%;
+            padding: 12px;
+
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+
+            font-size: 15px;
+            outline: none;
+        }
+
+        textarea {
+            min-height: 90px;
+            resize: vertical;
+        }
+
+        input:focus,
+        textarea:focus {
+            border-color: #2563eb;
+        }
+
+        .button-container {
+            margin-top: 20px;
+        }
+
+        button {
+            background: #2563eb;
+            color: white;
+
+            border: none;
+            border-radius: 6px;
+
+            padding: 12px 22px;
+
+            font-size: 15px;
+            font-weight: bold;
+
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+
+        button:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+
+        .refresh-button {
+            background: #374151;
+        }
+
+        .refresh-button:hover {
+            background: #111827;
+        }
+
+        .message {
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 6px;
+            display: none;
+        }
+
+        .message.success {
+            display: block;
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .message.error {
+            display: block;
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+
+            margin-bottom: 20px;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 900px;
+        }
+
+        th,
+        td {
+            padding: 13px 12px;
+            border-bottom: 1px solid #e5e7eb;
+
+            text-align: left;
+            vertical-align: top;
+        }
+
+        th {
+            background: #f9fafb;
+            font-size: 14px;
+        }
+
+        td {
+            font-size: 14px;
+        }
+
+        .status {
+            display: inline-block;
+
+            padding: 6px 10px;
+
+            border-radius: 20px;
+
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .status.pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status.completed {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .empty {
+            text-align: center;
+            padding: 30px;
+            color: #6b7280;
+        }
+
+        .stats {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .stat {
+            background: white;
+            padding: 18px 25px;
+            border-radius: 8px;
+
+            box-shadow:
+                0 2px 8px rgba(0, 0, 0, 0.06);
+
+            min-width: 150px;
+        }
+
+        .stat-title {
+            color: #6b7280;
+            font-size: 13px;
+        }
+
+        .stat-value {
+            font-size: 25px;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        @media (max-width: 700px) {
+
+            .header {
+                padding: 18px 20px;
+            }
+
+            .container {
+                margin-top: 20px;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .form-group.full {
+                grid-column: auto;
+            }
+
+            .stats {
+                flex-direction: column;
+            }
+
+            .table-header {
+                align-items: flex-start;
+                gap: 10px;
+                flex-direction: column;
+            }
+        }
+
+    </style>
+</head>
+
+<body>
+
+    <div class="header">
+
+        <h1>
+            Mining Worker Training
+        </h1>
+
+        <p>
+            Admin Dashboard
+        </p>
+
+    </div>
+
+
+    <div class="container">
+
+
+        <!-- Statistics -->
+
+        <div class="stats">
+
+            <div class="stat">
+
+                <div class="stat-title">
+                    Total Visitors
+                </div>
+
+                <div
+                    class="stat-value"
+                    id="totalVisitors"
+                >
+                    0
+                </div>
+
+            </div>
+
+
+            <div class="stat">
+
+                <div class="stat-title">
+                    Pending Training
+                </div>
+
+                <div
+                    class="stat-value"
+                    id="pendingVisitors"
+                >
+                    0
+                </div>
+
+            </div>
+
+
+            <div class="stat">
+
+                <div class="stat-title">
+                    Completed Training
+                </div>
+
+                <div
+                    class="stat-value"
+                    id="completedVisitors"
+                >
+                    0
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Add Visitor -->
+
+        <div class="card">
+
+            <h2>
+                Add Visitor
+            </h2>
+
+
+            <form id="visitorForm">
+
+                <div class="form-grid">
+
+
+                    <div class="form-group">
+
+                        <label for="name">
+                            Name
+                        </label>
+
+                        <input
+                            type="text"
+                            id="name"
+                            placeholder="Enter worker name"
+                            required
+                        >
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label for="phone">
+                            Phone Number
+                        </label>
+
+                        <input
+                            type="tel"
+                            id="phone"
+                            placeholder="919876543210"
+                            required
+                        >
+
+                    </div>
+
+
+                    <div class="form-group full">
+
+                        <label for="address">
+                            Address
+                        </label>
+
+                        <textarea
+                            id="address"
+                            placeholder="Enter worker address"
+                            required
+                        ></textarea>
+
+                    </div>
+
+
+                    <div class="form-group full">
+
+                        <label for="purpose">
+                            Purpose of Visit
+                        </label>
+
+                        <input
+                            type="text"
+                            id="purpose"
+                            placeholder="Example: Mining Site Visit"
+                            required
+                        >
+
+                    </div>
+
+                </div>
+
+
+                <div class="button-container">
+
+                    <button
+                        type="submit"
+                        id="sendButton"
+                    >
+                        Save & Send Training Link
+                    </button>
+
+                </div>
+
+
+                <div
+                    id="message"
+                    class="message"
+                ></div>
+
+            </form>
+
+        </div>
+
+
+        <!-- Visitor Table -->
+
+        <div class="card">
+
+            <div class="table-header">
+
+                <h2>
+                    Training Records
+                </h2>
+
+                <button
+                    class="refresh-button"
+                    onclick="loadVisitors()"
+                >
+                    Refresh
+                </button>
+
+            </div>
+
+
+            <div class="table-wrapper">
+
+                <table>
+
+                    <thead>
+
+                        <tr>
+
+                            <th>
+                                Name
+                            </th>
+
+                            <th>
+                                Phone
+                            </th>
+
+                            <th>
+                                Address
+                            </th>
+
+                            <th>
+                                Purpose
+                            </th>
+
+                            <th>
+                                Status
+                            </th>
+
+                            <th>
+                                Completion Date & Time
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody id="visitorTableBody">
+
+                        <tr>
+
+                            <td
+                                colspan="6"
+                                class="empty"
+                            >
+                                Loading...
+
+                            </td>
+
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+<script>
+
+    const form =
+        document.getElementById("visitorForm");
+
+    const sendButton =
+        document.getElementById("sendButton");
+
+    const message =
+        document.getElementById("message");
+
+    const tableBody =
+        document.getElementById("visitorTableBody");
+
+
+    // ------------------------------------------------
+    // Escape HTML
+    // ------------------------------------------------
+
+    function escapeHtml(value) {
+
+        return String(value ?? "")
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+
+    }
+
+
+    // ------------------------------------------------
+    // Format date
+    // ------------------------------------------------
+
+    function formatDate(dateString) {
+
+        if (!dateString) {
+            return "-";
+        }
+
+        const date =
+            new Date(dateString);
+
+        if (isNaN(date.getTime())) {
+            return "-";
+        }
+
+        return date.toLocaleString(
+            "en-IN",
+            {
+                dateStyle: "medium",
+                timeStyle: "short"
+            }
+        );
+    }
+
+
+    // ------------------------------------------------
+    // Load visitors
+    // ------------------------------------------------
+
+    async function loadVisitors() {
+
+        try {
+
+            const response =
+                await fetch("/api/visitors");
+
+            const data =
+                await response.json();
+
+            if (!data.success) {
+                throw new Error(
+                    "Could not load visitors."
+                );
+            }
+
+            renderVisitors(data.visitors);
+
+        } catch (error) {
+
+            console.error(error);
+
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="6" class="empty">
+                        Unable to load records.
+                    </td>
+                </tr>
+            `;
+        }
+    }
+
+
+    // ------------------------------------------------
+    // Render table
+    // ------------------------------------------------
+
+    function renderVisitors(visitors) {
+
+        const total =
+            visitors.length;
+
+        const pending =
+            visitors.filter(
+                visitor =>
+                    visitor.status === "Pending"
+            ).length;
+
+        const completed =
+            visitors.filter(
+                visitor =>
+                    visitor.status === "Completed"
+            ).length;
+
+
+        document.getElementById(
+            "totalVisitors"
+        ).textContent = total;
+
+
+        document.getElementById(
+            "pendingVisitors"
+        ).textContent = pending;
+
+
+        document.getElementById(
+            "completedVisitors"
+        ).textContent = completed;
+
+
+        if (visitors.length === 0) {
+
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="6" class="empty">
+                        No training records found.
+                    </td>
+                </tr>
+            `;
+
+            return;
+        }
+
+
+        tableBody.innerHTML =
+            visitors.map(visitor => {
+
+                const statusClass =
+                    visitor.status === "Completed"
+                        ? "completed"
+                        : "pending";
+
+
+                return `
+                    <tr>
+
+                        <td>
+                            ${escapeHtml(visitor.name)}
+                        </td>
+
+                        <td>
+                            ${escapeHtml(visitor.phone)}
+                        </td>
+
+                        <td>
+                            ${escapeHtml(visitor.address)}
+                        </td>
+
+                        <td>
+                            ${escapeHtml(visitor.purpose)}
+                        </td>
+
+                        <td>
+                            <span class="status ${statusClass}">
+                                ${escapeHtml(visitor.status)}
+                            </span>
+                        </td>
+
+                        <td>
+                            ${formatDate(visitor.completed_at)}
+                        </td>
+
+                    </tr>
+                `;
+
+            }).join("");
+    }
+
+
+    // ------------------------------------------------
+    // Form submit
+    // ------------------------------------------------
+
+    form.addEventListener(
+        "submit",
+        async function(event) {
+
+            event.preventDefault();
+
+
+            const name =
+                document.getElementById("name")
+                    .value.trim();
+
+            const phone =
+                document.getElementById("phone")
+                    .value.trim();
+
+            const address =
+                document.getElementById("address")
+                    .value.trim();
+
+            const purpose =
+                document.getElementById("purpose")
+                    .value.trim();
+
+
+            sendButton.disabled = true;
+
+            sendButton.textContent =
+                "Saving & Sending...";
+
+
+            message.className =
+                "message";
+
+            message.textContent = "";
+
+
+            try {
+
+                const response =
+                    await fetch(
+                        "/api/add-visitor",
+                        {
+                            method: "POST",
+
+                            headers: {
+                                "Content-Type":
+                                    "application/json"
+                            },
+
+                            body: JSON.stringify({
+                                name,
+                                phone,
+                                address,
+                                purpose
+                            })
+                        }
+                    );
+
+
+                const data =
+                    await response.json();
+
+
+                if (!response.ok) {
+
+                    throw new Error(
+                        data.message ||
+                        "Something went wrong."
+                    );
+                }
+
+
+                message.className =
+                    "message success";
+
+                message.textContent =
+                    "Visitor saved and training link sent successfully.";
+
+
+                form.reset();
+
+                await loadVisitors();
+
+
+            } catch (error) {
+
+                console.error(error);
+
+                message.className =
+                    "message error";
+
+                message.textContent =
+                    error.message;
+
+                await loadVisitors();
+
+            } finally {
+
+                sendButton.disabled = false;
+
+                sendButton.textContent =
+                    "Save & Send Training Link";
+            }
+
+        }
+    );
+
+
+    // Initial load
+    loadVisitors();
+
+
+    // Automatically refresh every 5 seconds
+    setInterval(
+        loadVisitors,
+        5000
+    );
+
+</script>
+
+</body>
+</html>
